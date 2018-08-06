@@ -49,7 +49,7 @@ def add_card(request):
                 cat = cart.first()
                 cat.c_num += 1
                 cat.save()
-                data['c_num'] = cart.c_num
+                data['c_num'] = cat.c_num
                 count_price = 0
                 for carts in cart:
                     count_price += carts.goods.list_price * carts.c_num
