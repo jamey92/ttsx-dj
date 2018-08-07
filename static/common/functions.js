@@ -10,9 +10,9 @@ function addgoods(id) {
         success: function (data) {
             if (data.code == '200') {
                 $('.num_show_'+ id).val(data.c_num)
-                $('#all_price').val(data.count)
+                $('#cart_price_'+ id).html(data.count)
                 console.log(data)
-
+                get_count_price()
             }
         },
         error: function (data) {
@@ -33,8 +33,9 @@ function subgoods(id){
         success:function(data){
             if(data.code == '200'){
                 $('.num_show_'+ id).val(data.c_num)
+                $('#cart_price_'+ id).html(data.count)
                 console.log(data)
-
+                get_count_price()
             }
         },
         error:function(data){
@@ -43,21 +44,27 @@ function subgoods(id){
     });
 }
 
+
 $.get('/app/goods_num/', function (data) {
     if (data.code == '200') {
         for (var i=0;i<data.carts.length;i++) {
-            $('#goods_'+ data.carts[i].goods_id).html(data.carts[i].c_num)
-
+            alert('123')
+            $('#goods_'+ data.carts[i].goods_id).val(data.carts[i].c_num)
+            // $('num_show_'+ data.carts[i].goods_id).val(data.carts[i].c_num)
         }
     }
 });
 
-// function count_price() {
-//     $.get('/app/goods_count/', function (data) {
-//         if (data.code == '200') {
-//             $('#all_price').html(data.count)
-//         }
-//     })
-// }
-//
-// count_price()
+// 总计
+function get_count_price(){
+
+    $.get('/app/goods_count/', function(data){
+        if(data.code == '200'){
+            $('#all_price').html(data.count)
+            $('#all_num').html(data.num)
+        }
+    });
+}
+
+get_count_price()
+

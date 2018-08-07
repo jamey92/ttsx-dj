@@ -3,9 +3,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from app.models import CartModel
-from back.models import BackProductList, ArticleCategory
-
-from user.models import UserModel
+from back.models import BackProductList
 
 
 def index(request):
@@ -45,18 +43,20 @@ def add_card(request):
             goods_id = request.POST.get('goods_id')
             # 验证当前登录用户是否对同一商品进行添加操作
             cart = CartModel.objects.filter(user=user, goods_id=goods_id)
+            cat = cart.first()
             if cart:
-                cat = cart.first()
                 cat.c_num += 1
                 cat.save()
                 data['c_num'] = cat.c_num
-                count_price = 0
-                for carts in cart:
-                    count_price += carts.goods.list_price * carts.c_num
+                count_price = cat.goods.list_price * cat.c_num
+                data['count'] = count_price
             else:
                 # 登录的当前用户没有添加商品到购物车中，则创建
                 CartModel.objects.create(user=user, goods_id=goods_id)
                 data['c_num'] = 1
+                cat = CartModel.objects.filter(user=user, goods_id=goods_id).first()
+                count_price = cat.goods.list_price
+                data['count'] = count_price
             data['code'] = '200'
             data['msg'] = '请求成功'
             return JsonResponse(data)
@@ -71,19 +71,19 @@ def sub_card(request):
         data['code'] = '1002'
         if user.id:
             goods_id = request.POST.get('goods_id')
-            cart = CartModel.objects.filter(user=user, goods_id=goods_id).first()
+            cart = CartModel.objects.filter(user=user, goods_id=goods_id)
             if cart:
-                if cart.c_num == 1:
-                    cart.delete()
+                cat = cart.first()
+                if cat.c_num == 1:
+                    cat.delete()
                     data['c_num'] = 0
                 else:
-                    cart.c_num -= 1
-                    cart.save()
-                    data['c_num'] = cart.c_num
-                    count_price = 0
-                    for carts in cart:
-                        count_price += carts.goods.list_price * carts.c_num
-                data['c_num'] = cart.c_num
+                    cat.c_num -= 1
+                    cat.save()
+                    data['c_num'] = cat.c_num
+                    count_price = cat.goods.list_price * cat.c_num
+                    data['count'] = count_price
+                data['c_num'] = cat.c_num
                 data['code'] = '200'
                 return JsonResponse(data)
             else:
@@ -92,19 +92,6 @@ def sub_card(request):
         else:
             data['msg'] = '请先登录'
             return JsonResponse(data)
-
-
-# 计算总价
-def goods_count(request):
-    if request.method == 'GET':
-        user = request.user
-
-        carts = CartModel.objects.filter(user=user, is_select=True)
-        count_price = 0
-        for cart in carts:
-            count_price += cart.goods.list_price * cart.c_num
-
-        return JsonResponse({'count': count_price, 'code': 200})
 
 
 # 刷新页面
@@ -125,6 +112,21 @@ def goods_num(request):
                 return JsonResponse({'carts': cart_list, 'code': '200'})
         else:
             JsonResponse({'carts': '', 'code': '1002'})
+
+
+# 计算总价
+def goods_count(request):
+    if request.method == 'GET':
+        user = request.user
+
+        carts = CartModel.objects.filter(user=user, is_select=True)
+        count_price = 0
+        num = 0
+        for cart in carts:
+            count_price += cart.goods.list_price * cart.c_num
+            num += 1
+
+        return JsonResponse({'count': count_price, 'code': 200, 'num': num})
 
 
 # 购物车

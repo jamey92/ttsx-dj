@@ -96,6 +96,7 @@
 				<div class="num_name fl">数 量：</div>
 				<div class="num_add fl">
 					<input type="text" class="num_show_{{ det.id }} fl" value="1">
+					<input type="hidden" id="goods_{{ cart.goods.id }}">
 					<a href="javascript:;" onclick="addgoods({{det.id}})" class="add fr">+</a>
 					<a href="javascript:;" onclick="subgoods({{det.id}})" class="add fr">-</a>
 				</div> 
